@@ -40,16 +40,26 @@
     (.setViewport renderer 0 0 width height)
     (set-camera-params)))
 
-(defn random-vector []
-  (let [rand-coord (fn [] (- (* 2 (.random js/Math)) 1))]
-    (THREE.Vector3. (rand-coord) (rand-coord) (rand-coord))))
+(defn random-vector [extent]
+  (let [r (fn [range] (- (* range (.random js/Math)) (/ range 2)))]
+    (THREE.Vector3. (r extent) (r extent) (r extent))))
+
+(defn random-vectors []
+  (let [points-per-mesh 10
+        extent 0.2]
+    (repeatedly points-per-mesh #(random-vector extent))))
 
 (defn generate-mesh []
-  (let [points-per-mesh 5
-        geometry (THREE.ConvexGeometry. (to-array (repeatedly points-per-mesh
-                                                              random-vector)))
-        material (THREE.MeshBasicMaterial. #js {:wireframe true :color 0x288CFF})]
-    (THREE.Mesh. geometry material)))
+  (let [geometry (THREE.ConvexGeometry. (to-array (random-vectors)))
+        material (THREE.MeshBasicMaterial. #js {:wireframe true :color 0x288CFF})
+        mesh (THREE.Mesh. geometry material)
+        position (random-vector 1.5)]
+    ;; setting .-position directly doesn't work, you have to go component by
+    ;; component... how lame
+    (set! (.-x (.-position mesh)) (.-x position))
+    (set! (.-y (.-position mesh)) (.-y position))
+    (set! (.-z (.-position mesh)) (.-z position))
+    mesh))
 
 (defn generate-meshes []
   (let [mesh-count 10]
